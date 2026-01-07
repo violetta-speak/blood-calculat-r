@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Калькулятор наследования групп крови</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #e9f7ef;
+      border-radius: 6px;
+      font-size: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Калькулятор наследования групп крови</h1>
+
+  <label for="parent1">Группа крови и резус-фактор родителя 1:</label>
+  <select id="parent1">
+    <option value="A+">A+</option>
+    <option value="A-">A-</option>
+    <option value="B+">B+</option>
+    <option value="B-">B-</option>
+    <option value="AB+">AB+</option>
+    <option value="AB-">AB-</option>
+    <option value="O+">O+</option>
+    <option value="O-">O-</option>
+  </select>
+
+  <label for="parent2">Группа крови и резус-фактор родителя 2:</label>
+  <select id="parent2">
+    <option value="A+">A+</option>
+    <option value="A-">A-</option>
+    <option value="B+">B+</option>
+    <option value="B-">B-</option>
+    <option value="AB+">AB+</option>
+    <option value="AB-">AB-</option>
+    <option value="O+">O+</option>
+    <option value="O-">O-</option>
+  </select>
+
+  <button onclick="calculate()">Рассчитать возможные группы крови у ребёнка</button>
+
+  <div id="result"></div>
+
+  <script>
+    // Генотипы для групп крови
+    const bloodGenotypes = {
+      A: ['AA', 'AO'],
+      B: ['BB', 'BO'],
+      AB: ['AB'],
+      O: ['OO']
+    };
+
+    // Возможные комбинации от двух генотипов
+    function combine(parent1, parent2) {
+      const combinations = [];
+      for (let a of parent1) {
+        for (let b of parent2) {
+          combinations.push(a + b);
+        }
+      }
+      return combinations;
+    }
+
+    // Получение возможных фенотипов (групп крови) из генотипов
+    function getPhenotype(genotype) {
+      const alleles = genotype.split('').sort();
+      if (alleles.includes('A') && alleles.includes('B')) return 'AB';
+      if (alleles.includes('A')) return 'A';
+      if (alleles.includes('B')) return 'B';
+      return 'O';
+    }
+
+    // Логика резус-фактора
+    function getRhCombinations(rh1, rh2) {
+      const alleles1 = rh1 === '+' ? ['+', '-'] : ['-', '-'];
+      const alleles2 = rh2 === '+' ? ['+', '-'] : ['-', '-'];
+      const combinations = new Set();
+      for (let a of alleles1) {
+        for (let b of alleles2) {
+          combinations.add((a === '+' || b === '+') ? '+' : '-');
+        }
+      }
+      return Array.from(combinations).sort((a, b) => (b === '+' ? 1 : -1)); // + раньше -
+    }
+
+    function calculate() {
+      const p1 = document.getElementById('parent<REDACTED_EMAIL>').value;
+      const p2 = document.getElementById('parent<REDACTED_EMAIL>').value;
+
+      const group1 = p1.slice(0, -1);
+      const rh1 = p1.slice(-1);
+      const group2 = p2.slice(0, -1);
+      const rh2 = p2.slice(-1);
+
+      // Все генотипы родителей
+      const genotypes1 = bloodGenotypes[group1];
+      const genotypes2 = bloodGenotypes[group2];
+
+      // Все возможные генотипы ребёнка
+      const childGenotypes = new Set();
+      for (let g1 of genotypes1) {
+        for (let g2 of genotypes2) {
+          const half1 = g1.split('');
+          const half2 = g2.split('');
+          for (let a of half1) {
+            for (let b of half2) {
+              const childGenotype = [a, b].sort().join('');
+              childGenotypes.add(childGenotype);
+            }
+          }
+        }
+      }
+
+      // Получаем уникальные фенотипы
+      const bloodPhenotypes = new Set();
+      childGenotypes.forEach(gt => {
+        bloodPhenotypes.add(getPhenotype(gt));
+      });
+
+      // Резус-фактор
+      const rhResults = getRhCombinations(rh1, rh2);
+
+      // Комбинируем
+      const results = [];
+      bloodPhenotypes.forEach(b => {
+        rhResults.forEach(r => {
+          results.push(b + r);
+        });
+      });
+
+      // Вывод
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `<strong>Возможные группы крови у ребёнка:</strong><br>` + results.join(', ');
+      resultDiv.style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
